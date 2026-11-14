@@ -3,176 +3,226 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#1f6f78">
-<title>طيف — الدفتر المحاسبي</title>
+<meta name="theme-color" content="#17484f">
+<title>طيف — إدارة وحسابات</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <style>
-:root{--bg:#f4f6f7;--card:#fff;--tx:#1d2b30;--mut:#6b7c83;--bd:#dde4e7;--pri:#1f6f78;--pt:#fff;--pos:#1b7f4b;--neg:#c0392b;--ov:rgba(0,0,0,.4);color-scheme:light}
-@media (prefers-color-scheme:dark){:root{--bg:#14191b;--card:#1e2528;--tx:#e8eef0;--mut:#93a3a9;--bd:#2f3a3e;--pri:#3aa3ae;--pt:#0b1416;--pos:#4cc58a;--neg:#ff7a6b;--ov:rgba(0,0,0,.6);color-scheme:dark}}
+:root{--bg:#f1f4f6;--card:#fff;--tx:#1d2b30;--mut:#6b7c83;--bd:#e2e8eb;--pri:#1f6f78;--pt:#fff;--side:#17484f;--pos:#1b7f4b;--neg:#c0392b;--ov:rgba(0,0,0,.45);--sh:0 1px 3px rgba(0,0,0,.08);color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#12171a;--card:#1c2326;--tx:#e8eef0;--mut:#93a3a9;--bd:#2c373b;--pri:#3aa3ae;--pt:#0b1416;--side:#0f2a2e;--pos:#4cc58a;--neg:#ff7a6b;--ov:rgba(0,0,0,.65);--sh:none;color-scheme:dark}}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--tx);font-family:Tahoma,Arial,sans-serif;font-size:15px;padding:env(safe-area-inset-top,0) 0 90px}
-header{padding:14px 16px 6px;display:flex;justify-content:space-between;align-items:center;max-width:720px;margin:0 auto}
-header h1{margin:0;font-size:19px}
-main{max-width:720px;margin:0 auto;padding:8px 12px}
-.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px 14px;margin:0 0 12px}
-h3{margin:0 0 8px;font-size:15px}
-.ln{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dashed var(--bd)}
-.ln:last-child{border:0}.b{font-weight:700}.big{font-size:17px}
-.pos{color:var(--pos)}.neg{color:var(--neg)}.mut{color:var(--mut)}.sm{font-size:12px}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:Tahoma,Arial,sans-serif;font-size:15px}
+#side{position:fixed;top:0;bottom:0;right:0;width:230px;background:var(--side);color:#e6f0f1;padding:env(safe-area-inset-top,0) 0 16px;transform:translateX(100%);transition:.2s;z-index:20;overflow:auto}
+#side.open{transform:none}
+#side h2{margin:0;padding:18px 18px 10px;font-size:20px;color:#fff}
+#side button{display:flex;gap:10px;width:100%;text-align:right;background:none;border:0;color:inherit;padding:12px 18px;font-size:15px;border-right:3px solid transparent}
+#side button.on{background:rgba(255,255,255,.1);border-right-color:#7fd6de;font-weight:700}
+#bk{position:fixed;inset:0;background:var(--ov);z-index:15;display:none}#bk.open{display:block}
+#top{position:sticky;top:0;z-index:10;background:var(--card);border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:10px;padding:calc(8px + env(safe-area-inset-top,0)) 14px 8px}
+#top h1{margin:0;font-size:17px;flex:1}
+.ib{background:none;border:1px solid var(--bd);border-radius:8px;color:var(--tx);padding:6px 10px;font-size:16px}
+main{max-width:860px;margin:0 auto;padding:14px 12px 40px}
+@media (min-width:900px){#side{transform:none}#top,main{margin-right:230px}#top{padding-right:20px}#mb{display:none}#bk{display:none!important}main{max-width:none;padding:18px 28px 40px 40px;margin-right:230px}}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;box-shadow:var(--sh);padding:12px 14px;margin:0 0 14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}.grid .card{margin:0}
+h2.t{margin:0;font-size:18px}h3{margin:0 0 8px;font-size:15px}
+.ph{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.ln{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed var(--bd)}.ln:last-child{border:0}
+.b{font-weight:700}.big{font-size:17px}.pos{color:var(--pos)}.neg{color:var(--neg)}.mut{color:var(--mut)}.sm{font-size:12px}
 .row{display:flex;gap:8px}.row>*{flex:1;min-width:0}
 label{display:block;font-size:13px;color:var(--mut);margin:8px 0 0}
 input,select{width:100%;padding:10px;margin-top:3px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);font:inherit}
 button{font:inherit;cursor:pointer}
-.btn{background:var(--pri);color:var(--pt);border:0;border-radius:10px;padding:11px 16px;font-weight:700}
-.btn.g{background:var(--bg);color:var(--tx);border:1px solid var(--bd)}
-nav{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--bd);display:flex;padding:6px 6px calc(6px + env(safe-area-inset-bottom,0px))}
-nav button{flex:1;background:none;border:0;color:var(--mut);padding:8px 2px;font-size:13px}
-nav button.on{color:var(--pri);font-weight:700}
-.fab{position:fixed;left:16px;bottom:calc(74px + env(safe-area-inset-bottom,0px));width:54px;height:54px;border-radius:50%;background:var(--pri);color:var(--pt);border:0;font-size:28px;box-shadow:0 3px 10px rgba(0,0,0,.3)}
+.btn{background:var(--pri);color:var(--pt);border:0;border-radius:8px;padding:9px 14px;font-weight:700}
+.btn.g{background:var(--card);color:var(--tx);border:1px solid var(--bd)}.btn.d{background:none;color:var(--neg);border:1px solid var(--neg)}
 .chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:8px}
 .chip{white-space:nowrap;border:1px solid var(--bd);background:var(--card);color:var(--tx);border-radius:16px;padding:6px 12px;font-size:13px}
 .chip.on{background:var(--pri);color:var(--pt);border-color:var(--pri)}
-.it{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--bd)}
+.it{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--bd)}.it:last-child{border:0}
 .it>div:first-child{flex:1;min-width:0}.it small{display:block;color:var(--mut);overflow-wrap:anywhere}
-.am{white-space:nowrap;font-weight:700}
-.x{background:none;border:0;color:var(--mut);font-size:16px;padding:4px 8px}
-.x.arm{color:var(--neg);font-size:12px;font-weight:700}
-.ov{position:fixed;inset:0;background:var(--ov);display:flex;align-items:flex-end;justify-content:center;z-index:5}
-.sh{background:var(--card);width:100%;max-width:560px;max-height:94%;overflow:auto;border-radius:16px 16px 0 0;padding:14px 16px calc(16px + env(safe-area-inset-bottom,0px))}
-.empty{text-align:center;color:var(--mut);padding:24px 8px}
-.tap{cursor:pointer}
-.li{border:1px solid var(--bd);border-radius:10px;padding:8px;margin-top:8px;background:var(--bg)}
-.li input{background:var(--card)}
-.li .row{align-items:flex-end}
+.am{white-space:nowrap;font-weight:700;text-align:left}
+.tap{cursor:pointer}.tap:hover{background:var(--bg)}
+.x{background:none;border:0;color:var(--mut);font-size:16px;padding:4px 8px}.x.arm{color:var(--neg);font-size:12px;font-weight:700}
+.bd{display:inline-block;font-size:11px;padding:1px 8px;border-radius:10px;background:var(--bg);color:var(--mut);margin-inline-start:6px}
+.bd.ok{color:var(--pos)}.bd.no{color:var(--neg)}
+.ov{position:fixed;inset:0;background:var(--ov);display:flex;align-items:center;justify-content:center;z-index:30;padding:10px}
+.sh{background:var(--card);width:100%;max-width:560px;max-height:94%;overflow:auto;border-radius:14px;padding:16px;padding-bottom:calc(16px + env(safe-area-inset-bottom,0))}
+.empty{text-align:center;color:var(--mut);padding:26px 8px}
+.li{border:1px solid var(--bd);border-radius:10px;padding:8px;margin-top:8px;background:var(--bg)}.li input{background:var(--card)}.li .row{align-items:flex-end}
 </style>
 </head>
 <body>
-<header><h1>طيف — الدفتر المحاسبي</h1><button class="btn g" id="out" hidden>خروج</button></header>
+<aside id="side"></aside><div id="bk"></div>
+<div id="top"><button class="ib" id="mb">☰</button><h1 id="ttl">طيف</h1><button class="ib" id="out" hidden>خروج</button></div>
 <main id="app"></main>
-<nav id="nav" hidden></nav>
-<button class="fab" id="fab" hidden aria-label="إضافة عملية">+</button>
-<datalist id="dlCust"></datalist><datalist id="dlSup"></datalist><datalist id="dlProd"></datalist><datalist id="dlExp"></datalist>
+<datalist id="dlC"></datalist><datalist id="dlU"></datalist><datalist id="dlM"></datalist><datalist id="dlP"></datalist><datalist id="dlX"></datalist>
 <script>
-/* ===== إعدادات Supabase: عدّل السطرين هون فقط ===== */
-const SUPABASE_URL = 'https://dxjcjootfymrgxscofjt.supabase.co';   // مثال: https://abcdxyz.supabase.co
-const SUPABASE_KEY = 'sb_publishable_T1WkBh5nnRs6HBmsPOgM3w_m-FD4JCC';  // anon public key
-/* ================================================== */
-
-const T={s:'فاتورة بيع',p:'فاتورة شراء',e:'مصروف',r:'قبض من زبون',y:'دفع لمورد',k:'رأس مال',x:'صرف',a:'تعديل مخزون'};
-const C=['SYP','USD'],NAV={home:'الملخص',ops:'العمليات',acc:'الحسابات',stk:'المخزون'};
-const FIELDS={s:'d cur party paid cogs ccur inv note',p:'d cur party paid inv note',e:'d cur amt cat note',r:'d cur amt party note',y:'d cur amt party note',k:'d cur amt note',x:'d cur amt c2 a2 note',a:'d cat qty note'};
-const configured=SUPABASE_URL.startsWith('http')&&window.supabase;
-const sb=configured?supabase.createClient(SUPABASE_URL,SUPABASE_KEY):null;
-let user=null,tx=[],tab='home',F='',TT='',OF='',ST=null,armed=null,form=null,err='',msg='',busy=false,ready=false;
+/* ===== إعدادات Supabase ===== */
+const SUPABASE_URL='https://dxjcjootfymrgxscofjt.supabase.co';
+const SUPABASE_KEY='sb_publishable_T1WkBh5nnRs6HBmsPOgM3w_m-FD4JCC';
+/* ======================== */
+const T={s:'فاتورة بيع',p:'فاتورة شراء',e:'مصروف',r:'قبض من زبون',y:'دفع لمورد',k:'رأس مال / سحب',d:'توزيع أرباح',x:'صرف عملة',a:'تعديل مخزون'};
+const C=['SYP','USD'];
+const MENU=[['home','لوحة التحكم','▦'],['s','المبيعات','↗'],['p','المشتريات','↙'],['e','المصاريف','−'],['c','الزبائن','☺'],['u','الموردون','⚒'],['prod','المنتجات','▣'],['m','الشركاء','◎'],['mv','حركات أخرى','⇄']];
+const TITLE={...Object.fromEntries(MENU.map(m=>[m[0],m[1]])),det:'كشف حساب'};
+const FIELDS={s:'d cur party paid cogs ccur inv note',p:'d cur party paid inv note',e:'d cur amt cat note',r:'d cur amt party note',y:'d cur amt party note',k:'d cur amt party note',d:'d cur amt party note',x:'d cur amt c2 a2 note',a:'d cat qty note'};
+const MF={c:'name phone note',u:'name phone note',p:'name price cost cur note',m:'name phone share note'};
+const MK={c:'زبون',u:'مورد',p:'منتج',m:'شريك'};
+const sb=SUPABASE_URL.startsWith('http')&&window.supabase?supabase.createClient(SUPABASE_URL,SUPABASE_KEY):null;
+let user=null,tx=[],M=[],view='home',F='',TT='',OF='',ST=null,armed=null,form=null,mf=null,err='',msg='',busy=false,ready=false;
+const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=n=>(+n||0).toLocaleString('en-US',{maximumFractionDigits:2});
 const sg=n=>n>0?'pos':n<0?'neg':'';
 const today=()=>new Date().toISOString().slice(0,10);
 const ln=(l,v,b,big)=>`<div class="ln ${b?'b':''} ${big?'big':''}"><span>${l}</span><span class="${sg(v)}">${fmt(v)}</span></div>`;
 const lt=ls=>(ls||[]).reduce((s,l)=>s+(+l.q||0)*(+l.p||0),0);
+const z=()=>({SYP:0,USD:0});
+const NUM=['amt','paid','qty','cogs','a2','price','cost','share'];
 
 function calc(){
-  const z=()=>({SYP:0,USD:0}),pl={SYP:{s:0,c:0,e:0},USD:{s:0,c:0,e:0}},cash=z(),ar=z(),ap=z(),cu={},su={},st={};
+  const pl={SYP:{s:0,c:0,e:0},USD:{s:0,c:0,e:0}},pa={SYP:{s:0,c:0,e:0},USD:{s:0,c:0,e:0}},cash=z(),ar=z(),ap=z(),cu={},su={},st={},cap={},dis={};
   const inR=t=>(!F||t.d>=F)&&(!TT||t.d<=TT);
-  const stock=(t,sg)=>{(t.lines||[]).forEach(l=>{if(l.n)st[l.n]=(st[l.n]||0)+sg*(+l.q||0)})};
+  const add=(t,c,k,v)=>{pa[c][k]+=v;if(inR(t))pl[c][k]+=v};
+  const g=(o,n)=>o[n]=o[n]||z();
+  const stock=(t,s)=>(t.lines||[]).forEach(l=>{if(l.n)st[l.n]=(st[l.n]||0)+s*(+l.q||0)});
   for(const t of tx){
-    const a=+t.amt||0,p=t.paid==null?a:+t.paid,c=C.includes(t.cur)?t.cur:'SYP',pa=t.party||'';
-    if(t.t==='s'){if(inR(t)){pl[c].s+=a;pl[C.includes(t.ccur)?t.ccur:c].c+=+t.cogs||0}
-      cash[c]+=p;ar[c]+=a-p;(cu[pa]=cu[pa]||z())[c]+=a-p;stock(t,-1)}
-    else if(t.t==='p'){cash[c]-=p;ap[c]+=a-p;(su[pa]=su[pa]||z())[c]+=a-p;stock(t,1)}
-    else if(t.t==='e'){if(inR(t))pl[c].e+=a;cash[c]-=a}
-    else if(t.t==='r'){cash[c]+=a;ar[c]-=a;(cu[pa]=cu[pa]||z())[c]-=a}
-    else if(t.t==='y'){cash[c]-=a;ap[c]-=a;(su[pa]=su[pa]||z())[c]-=a}
-    else if(t.t==='k')cash[c]+=a;
+    const a=+t.amt||0,p=t.paid==null?a:+t.paid,c=C.includes(t.cur)?t.cur:'SYP',n=t.party||'';
+    if(t.t==='s'){add(t,c,'s',a);add(t,C.includes(t.ccur)?t.ccur:c,'c',+t.cogs||0);cash[c]+=p;ar[c]+=a-p;g(cu,n)[c]+=a-p;stock(t,-1)}
+    else if(t.t==='p'){cash[c]-=p;ap[c]+=a-p;g(su,n)[c]+=a-p;stock(t,1)}
+    else if(t.t==='e'){add(t,c,'e',a);cash[c]-=a}
+    else if(t.t==='r'){cash[c]+=a;ar[c]-=a;g(cu,n)[c]-=a}
+    else if(t.t==='y'){cash[c]-=a;ap[c]-=a;g(su,n)[c]-=a}
+    else if(t.t==='k'){cash[c]+=a;if(n)g(cap,n)[c]+=a}
+    else if(t.t==='d'){cash[c]-=a;if(n)g(dis,n)[c]+=a}
     else if(t.t==='x'){cash[c]-=a;if(C.includes(t.c2))cash[t.c2]+=+t.a2||0}
     else if(t.t==='a'&&t.cat)st[t.cat]=(st[t.cat]||0)+(+t.qty||0);
   }
-  return{pl,cash,ar,ap,cu,su,st};
+  return{pl,pa,cash,ar,ap,cu,su,st,cap,dis};
 }
+const mk=k=>M.filter(m=>m.kind===k);
 function lists(){
   const u=(ts,k)=>[...new Set(tx.filter(t=>ts.includes(t.t)&&t[k]).map(t=>t[k]))];
-  const o=l=>l.map(v=>`<option value="${esc(v)}">`).join('');
-  const prods=new Set();tx.forEach(t=>{(t.lines||[]).forEach(l=>l.n&&prods.add(l.n));if(t.t==='a'&&t.cat)prods.add(t.cat)});
-  dlCust.innerHTML=o(['زبون نقدي',...u('sr','party').filter(v=>v!=='زبون نقدي')]);
-  dlSup.innerHTML=o(['مورد عام',...u('py','party').filter(v=>v!=='مورد عام')]);
-  dlProd.innerHTML=o([...prods]);
-  dlExp.innerHTML=o(['إيجار','رواتب وأجور','نقل وشحن','كهرباء وماء وإنترنت','تسويق وإعلان','أدوات ومستلزمات',...u('e','cat')]);
+  const o=l=>[...new Set(l)].map(v=>`<option value="${esc(v)}">`).join('');
+  const k=calc();
+  $('dlC').innerHTML=o([...mk('c').map(m=>m.name),...Object.keys(k.cu)]);
+  $('dlU').innerHTML=o([...mk('u').map(m=>m.name),...Object.keys(k.su)]);
+  $('dlM').innerHTML=o(mk('m').map(m=>m.name));
+  $('dlP').innerHTML=o([...mk('p').map(m=>m.name),...Object.keys(k.st)]);
+  $('dlX').innerHTML=o(['إيجار','رواتب وأجور','نقل وشحن','كهرباء وماء وإنترنت','تسويق وإعلان','أدوات ومستلزمات',...u('e','cat')]);
 }
+const ph=(t,btn)=>`<div class="ph"><h2 class="t">${t}</h2><div>${btn||''}</div></div>`;
+const nb=(t,p)=>`<button class="btn" data-new="${t}" ${p?`data-party="${esc(p)}"`:''}>+ جديد</button>`;
+
 function login(){
-  return`<div class="card"><h3>تسجيل الدخول</h3><div class="mut sm">بياناتك مربوطة بحسابك وبتظهر على كل أجهزتك.</div><label>البريد الإلكتروني<input id="em" type="email" autocomplete="username"></label><label>كلمة السر<input id="pw" type="password" autocomplete="current-password"></label><div class="neg" style="margin-top:8px">${esc(err)}</div><div class="mut" style="margin-top:8px">${esc(msg)}</div><div class="row" style="margin-top:12px"><button class="btn" data-login>دخول</button><button class="btn g" data-signup>حساب جديد</button></div></div>`;
+  return`<div class="card" style="max-width:420px;margin:30px auto"><h3>طيف — تسجيل الدخول</h3><div class="mut sm">بياناتك مربوطة بحسابك وبتظهر على كل أجهزتك.</div><label>البريد الإلكتروني<input id="em" type="email" autocomplete="username"></label><label>كلمة السر<input id="pw" type="password" autocomplete="current-password"></label><div class="neg" style="margin-top:8px">${esc(err)}</div><div class="mut" style="margin-top:8px">${esc(msg)}</div><div class="row" style="margin-top:12px"><button class="btn" data-login>دخول</button><button class="btn g" data-signup>حساب جديد</button></div></div>`;
 }
 function home(){
   const k=calc();
-  let h=`<div class="card"><div class="row"><label>من تاريخ<input type="date" id="F" value="${F}"></label><label>إلى تاريخ<input type="date" id="TT" value="${TT}"></label></div><div class="mut sm" style="margin-top:6px">الفلتر بيأثر على الأرباح فقط. فاضي = كل الفترة.</div></div>`;
+  let h=`<div class="card"><div class="row"><label>من تاريخ<input type="date" id="F" value="${F}"></label><label>إلى تاريخ<input type="date" id="TT" value="${TT}"></label></div><div class="mut sm" style="margin-top:6px">الفلتر بيأثر على الأرباح فقط. فاضي = كل الفترة.</div></div><div class="grid">`;
   for(const c of C){const p=k.pl[c],g=p.s-p.c,n=g-p.e;
     h+=`<div class="card"><h3>الأرباح ${c==='SYP'?'بالليرة':'بالدولار'} (${c})</h3>${ln('المبيعات',p.s)}${ln('(−) تكلفة البضاعة المباعة',p.c)}${ln('مجمل الربح',g,1)}${ln('(−) المصاريف',p.e)}${ln('صافي الربح',n,1,1)}</div>`}
   h+=`<div class="card"><h3>الصندوق (الرصيد النقدي المتوقع)</h3>${ln('ليرة سورية',k.cash.SYP,1)}${ln('دولار',k.cash.USD,1)}</div>`;
-  h+=`<div class="card"><h3>الذمم</h3>${ln('مستحق لنا — ليرة',k.ar.SYP)}${ln('مستحق لنا — دولار',k.ar.USD)}${ln('مستحق علينا — ليرة',k.ap.SYP)}${ln('مستحق علينا — دولار',k.ap.USD)}</div>`;
+  h+=`<div class="card"><h3>الذمم</h3>${ln('مستحق لنا — ليرة',k.ar.SYP)}${ln('مستحق لنا — دولار',k.ar.USD)}${ln('مستحق علينا — ليرة',k.ap.SYP)}${ln('مستحق علينا — دولار',k.ap.USD)}</div></div>`;
   return h;
 }
-function item(t){
-  const ls=(t.lines||[]).map(l=>esc(l.n)+' ×'+l.q).join('، ');
-  const who=esc(t.party||t.cat||'');
-  const paid=(t.t==='s'||t.t==='p')&&t.paid!=null&&+t.paid<+t.amt?` · ${t.t==='s'?'مقبوض':'مدفوع'} ${fmt(t.paid)}`:'';
+function item(t,nodel){
+  const ls=(t.lines||[]).map(l=>esc(l.n)+' ×'+l.q+(l.note?' ('+esc(l.note)+')':'')).join('، ');
+  const full=(t.t==='s'||t.t==='p')?(t.paid==null||+t.paid>=+t.amt?'<span class="bd ok">مدفوعة</span>':+t.paid>0?'<span class="bd no">جزئي</span>':'<span class="bd no">غير مدفوعة</span>'):'';
   const am=t.t==='a'?fmt(t.qty)+' قطعة':t.t==='x'?`${fmt(t.amt)} ${t.cur} ← ${fmt(t.a2)} ${t.c2}`:`${fmt(t.amt)} ${t.cur}`;
-  return`<div class="it"><div><b>${T[t.t]}</b> ${who}${t.inv?' #'+esc(t.inv):''}<small>${t.d} ${esc(t.note||'')}${paid}</small>${ls?`<small>${ls}</small>`:''}</div><div class="am">${am}</div><button class="x ${armed===t.id?'arm':''}" data-del="${t.id}">${armed===t.id?'تأكيد الحذف':'✕'}</button></div>`;
+  return`<div class="it"><div><b>${t.t==='s'||t.t==='p'?esc(t.party||''):T[t.t]}</b> ${t.t==='s'||t.t==='p'?'':esc(t.party||t.cat||'')}${t.inv?' #'+esc(t.inv):''}${full}<small>${t.d} · ${T[t.t]} ${esc(t.note||'')}</small>${ls?`<small>${ls}</small>`:''}</div><div class="am">${am}</div>${nodel?'':`<button class="x ${armed===t.id?'arm':''}" data-del="${t.id}">${armed===t.id?'تأكيد الحذف':'✕'}</button>`}</div>`;
 }
-function ops(){
-  const l=tx.filter(t=>!OF||t.t===OF);
-  return`<div class="chips"><button class="chip ${OF?'':'on'}" data-of="">الكل</button>${Object.entries(T).map(([k,v])=>`<button class="chip ${OF===k?'on':''}" data-of="${k}">${v}</button>`).join('')}</div><div class="card">${l.length?l.map(item).join(''):'<div class="empty">ما في عمليات بعد. اضغط + لتضيف أول عملية.</div>'}</div>`;
+function inv(t){
+  const l=tx.filter(x=>x.t===t),s=z();l.forEach(x=>{if(C.includes(x.cur))s[x.cur]+=+x.amt||0});
+  return ph(TITLE[t],nb(t))+`<div class="card"><div class="ln"><span>الإجمالي</span><b>${fmt(s.SYP)} SYP · ${fmt(s.USD)} USD</b></div></div><div class="card">${l.length?l.map(x=>item(x)).join(''):'<div class="empty">ما في عمليات بعد.</div>'}</div>`;
 }
-function acc(){
-  const k=calc();
-  if(ST){const ts=tx.filter(t=>(ST.k==='c'?'sr':'py').includes(t.t)&&t.party===ST.n);
-    const b=(ST.k==='c'?k.cu:k.su)[ST.n]||{SYP:0,USD:0};
-    return`<button class="btn g" data-back>← رجوع</button><div class="card" style="margin-top:10px"><h3>كشف حساب: ${esc(ST.n)}</h3>${ln('الرصيد بالليرة',b.SYP,1)}${ln('الرصيد بالدولار',b.USD,1)}<div class="mut sm">${ST.k==='c'?'موجب = مستحق لنا':'موجب = مستحق علينا'}</div></div><div class="card">${ts.map(item).join('')||'<div class="empty">لا يوجد حركات</div>'}</div>`}
-  const sec=(t,o,kk)=>`<div class="card"><h3>${t}</h3>${Object.keys(o).length?Object.entries(o).map(([n,v])=>`<div class="it tap" data-st="${kk}" data-n="${esc(n)}"><div><b>${esc(n)||'—'}</b></div><div class="am ${sg(v.SYP)}">${fmt(v.SYP)} SYP</div><div class="am ${sg(v.USD)}">${fmt(v.USD)} USD</div></div>`).join(''):'<div class="empty">ما في حركات</div>'}</div>`;
-  return sec('الزبائن (موجب = مستحق لنا)',k.cu,'c')+sec('الموردين (موجب = مستحق علينا)',k.su,'u');
+function mv(){
+  const ts=['r','y','k','d','x','a'],l=tx.filter(x=>OF?x.t===OF:ts.includes(x.t));
+  return ph('حركات أخرى',nb(OF||'r'))+`<div class="chips"><button class="chip ${OF?'':'on'}" data-of="">الكل</button>${ts.map(k=>`<button class="chip ${OF===k?'on':''}" data-of="${k}">${T[k]}</button>`).join('')}</div><div class="card">${l.length?l.map(x=>item(x)).join(''):'<div class="empty">ما في حركات.</div>'}</div>`;
 }
-function stk(){
-  const e=Object.entries(calc().st);
-  return`<div class="card"><h3>المخزون حسب المنتج</h3>${e.length?e.map(([n,q])=>`<div class="ln"><span>${esc(n)}</span><b class="${sg(q)}">${fmt(q)}</b></div>`).join(''):'<div class="empty">بتظهر المنتجات من بنود الفواتير أو من «تعديل مخزون».</div>'}<div class="mut sm" style="margin-top:8px">المتبقي = المشتريات − المبيعات ± التعديلات (حسب اسم المنتج، فاكتب الاسم بنفس الإملاء).</div></div>`;
+function parties(k){
+  const c=calc(),bal=k==='c'?c.cu:c.su,names=[...new Set([...mk(k).map(m=>m.name),...Object.keys(bal)])].filter(Boolean);
+  const rows=names.map(n=>{const m=mk(k).find(x=>x.name===n),b=bal[n]||z();
+    return`<div class="it tap" data-st="${k}" data-n="${esc(n)}"><div><b>${esc(n)}</b>${m&&m.phone?`<small>${esc(m.phone)}</small>`:''}</div><div class="am ${sg(b.SYP)}">${fmt(b.SYP)} SYP</div><div class="am ${sg(b.USD)}">${fmt(b.USD)} USD</div></div>`}).join('');
+  return ph(TITLE[k],`<button class="btn" data-mnew="${k}">+ ${MK[k]} جديد</button>`)+`<div class="card">${rows||'<div class="empty">ما في بعد.</div>'}<div class="mut sm" style="margin-top:8px">${k==='c'?'موجب = مستحق لنا':'موجب = مستحق علينا'} · اضغط على الاسم لكشف الحساب</div></div>`;
+}
+function det(){
+  const k=ST.k,n=ST.n,c=calc(),b=(k==='c'?c.cu:c.su)[n]||z(),m=mk(k).find(x=>x.name===n);
+  const ts=tx.filter(t=>(k==='c'?'sr':'py').includes(t.t)&&t.party===n);
+  return`<div class="ph"><button class="btn g" data-back>← رجوع</button><div><button class="btn" data-new="${k==='c'?'s':'p'}" data-party="${esc(n)}">+ فاتورة</button> <button class="btn g" data-new="${k==='c'?'r':'y'}" data-party="${esc(n)}">+ ${k==='c'?'قبض':'دفعة'}</button> ${m?`<button class="btn g" data-medit="${m.id}">تعديل</button>`:''}</div></div><div class="card"><h3>${esc(n)} ${m&&m.phone?'· '+esc(m.phone):''}</h3>${ln('الرصيد بالليرة',b.SYP,1)}${ln('الرصيد بالدولار',b.USD,1)}<div class="mut sm">${k==='c'?'موجب = مستحق لنا':'موجب = مستحق علينا'}</div></div><div class="card">${ts.map(x=>item(x)).join('')||'<div class="empty">لا يوجد حركات</div>'}</div>`;
+}
+function prod(){
+  const c=calc(),names=[...new Set([...mk('p').map(m=>m.name),...Object.keys(c.st)])];
+  const rows=names.map(n=>{const m=mk('p').find(x=>x.name===n),q=c.st[n]||0;
+    return`<div class="it ${m?'tap':''}" ${m?`data-medit="${m.id}"`:''}><div><b>${esc(n)}</b><small>${m&&m.price!=null?'بيع '+fmt(m.price):''} ${m&&m.cost!=null?' · تكلفة '+fmt(m.cost):''} ${m&&m.cur?m.cur:''}</small></div><div class="am ${sg(q)}">${fmt(q)}</div></div>`}).join('');
+  return ph('المنتجات والمخزون',`<button class="btn" data-mnew="p">+ منتج جديد</button> <button class="btn g" data-new="a">تعديل مخزون</button>`)+`<div class="card">${rows||'<div class="empty">ما في منتجات. أضف منتج أو سجّل فاتورة وبينضاف لحاله.</div>'}<div class="mut sm" style="margin-top:8px">الرقم = الكمية المتبقية (المشتريات − المبيعات ± التعديلات)</div></div>`;
+}
+function partners(){
+  const c=calc(),ps=mk('m'),tot=ps.reduce((s,m)=>s+(+m.share||0),0);
+  let h=ph('الشركاء وتوزيع الأرباح',`<button class="btn" data-mnew="m">+ شريك</button>`);
+  h+=`<div class="card"><h3>صافي الأرباح حتى اليوم (كل الفترات)</h3>${C.map(x=>ln(x,c.pa[x].s-c.pa[x].c-c.pa[x].e,1)).join('')}${ps.length&&Math.round(tot)!==100?`<div class="neg sm" style="margin-top:6px">مجموع النسب ${fmt(tot)}٪ وليس ١٠٠٪. عدّل نسب الشركاء.</div>`:''}</div>`;
+  h+=ps.length?'<div class="grid">'+ps.map(m=>{
+    const cp=c.cap[m.name]||z(),ds=c.dis[m.name]||z(),sh=(+m.share||0)/100;
+    const ent=x=>sh*(c.pa[x].s-c.pa[x].c-c.pa[x].e);
+    return`<div class="card"><h3>${esc(m.name)} <span class="bd">${fmt(m.share)}٪</span></h3>${C.map(x=>ln('رأس المال '+x,cp[x])+ln('حصته من الأرباح '+x,ent(x))+ln('مدفوع له '+x,ds[x])+ln('المتبقي له '+x,ent(x)-ds[x],1)).join('')}<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap"><button class="btn g" data-new="k" data-party="${esc(m.name)}">رأس مال / سحب</button><button class="btn g" data-new="d" data-party="${esc(m.name)}">توزيع</button><button class="btn g" data-medit="${m.id}">تعديل</button></div></div>`}).join('')+'</div>':'<div class="card empty">أضف الشركاء ونسبة كل واحد، وبعدها سجّل رأس المال والتوزيعات.</div>';
+  return h;
 }
 function fieldHtml(f,t,v){
-  const L={d:'التاريخ',cur:'العملة',amt:t==='x'?'المبلغ المدفوع':t==='k'?'المبلغ (سالب = سحب)':'المبلغ',paid:t==='s'?'المقبوض عند الفاتورة (فاضي = كامل)':'المدفوع عند الفاتورة (فاضي = كامل)',party:t==='s'||t==='r'?'الزبون':'المورد',cat:t==='e'?'نوع المصروف':'المنتج',qty:'الكمية (سالب للنقص)',cogs:'تكلفة البضاعة المباعة',ccur:'عملة التكلفة',inv:'رقم الفاتورة',note:'ملاحظات',c2:'إلى عملة',a2:'المبلغ المستلم'};
-  const dl=f==='party'?(t==='s'||t==='r'?'dlCust':'dlSup'):f==='cat'?(t==='e'?'dlExp':'dlProd'):'';
+  const L={d:'التاريخ',cur:'العملة',amt:t==='x'?'المبلغ المدفوع':t==='k'?'المبلغ (سالب = سحب)':'المبلغ',paid:t==='s'?'المقبوض عند الفاتورة (فاضي = كامل)':'المدفوع عند الفاتورة (فاضي = كامل)',party:t==='s'||t==='r'?'الزبون':t==='p'||t==='y'?'المورد':'الشريك'+(t==='k'?' (اختياري)':''),cat:t==='e'?'نوع المصروف':'المنتج',qty:'الكمية (سالب للنقص)',cogs:'تكلفة البضاعة المباعة',ccur:'عملة التكلفة',inv:'رقم الفاتورة',note:'ملاحظات',c2:'إلى عملة',a2:'المبلغ المستلم'};
+  const dl=f==='party'?(t==='s'||t==='r'?'dlC':t==='p'||t==='y'?'dlU':'dlM'):f==='cat'?(t==='e'?'dlX':'dlP'):'';
   const sel=x=>`<select data-f="${f}">${C.map(c=>`<option ${(v[f]||x)===c?'selected':''}>${c}</option>`).join('')}</select>`;
   let i;
   if(f==='cur'||f==='ccur'||f==='c2')i=sel(f==='c2'?'USD':'SYP');
   else if(f==='d')i=`<input type="date" data-f="d" value="${v.d||today()}">`;
-  else if(['amt','paid','qty','cogs','a2'].includes(f))i=`<input type="number" step="any" inputmode="decimal" data-f="${f}" value="${v[f]??''}">`;
-  else i=`<input type="text" data-f="${f}" ${dl?`list="${dl}"`:''} value="${esc(v[f]||'')}" ${f==='party'?`placeholder="${t==='s'||t==='r'?'زبون نقدي':'مورد عام'}"`:''}>`;
+  else if(NUM.includes(f))i=`<input type="number" step="any" inputmode="decimal" data-f="${f}" value="${v[f]??''}">`;
+  else i=`<input type="text" data-f="${f}" ${dl?`list="${dl}"`:''} value="${esc(v[f]||'')}">`;
   return`<label>${L[f]}${i}</label>`;
 }
 function linesHtml(){
-  return`<h3 style="margin-top:14px">البنود</h3>${form.lines.map((l,i)=>`<div class="li"><div class="row"><label style="flex:2">المنتج<input data-li="${i}" data-lf="n" list="dlProd" value="${esc(l.n)}"></label><label>الكمية<input type="number" step="any" inputmode="decimal" data-li="${i}" data-lf="q" value="${l.q}"></label><label>السعر<input type="number" step="any" inputmode="decimal" data-li="${i}" data-lf="p" value="${l.p}"></label><button class="x" data-rl="${i}">✕</button></div><label>ملاحظة على البند<input data-li="${i}" data-lf="note" value="${esc(l.note||'')}"></label></div>`).join('')}<button class="btn g" style="margin-top:8px" data-al>+ بند</button><div class="ln b big" style="margin-top:10px"><span>الإجمالي</span><span id="tot">${fmt(lt(form.lines))}</span></div>`;
+  return`<h3 style="margin-top:14px">البنود</h3>${form.lines.map((l,i)=>`<div class="li"><div class="row"><label style="flex:2">المنتج<input data-li="${i}" data-lf="n" list="dlP" value="${esc(l.n)}"></label><label>الكمية<input type="number" step="any" inputmode="decimal" data-li="${i}" data-lf="q" value="${l.q}"></label><label>السعر<input type="number" step="any" inputmode="decimal" data-li="${i}" data-lf="p" value="${l.p}"></label><button class="x" data-rl="${i}">✕</button></div><label>ملاحظة على البند<input data-li="${i}" data-lf="note" value="${esc(l.note||'')}"></label></div>`).join('')}<button class="btn g" style="margin-top:8px" data-al>+ بند</button><div class="ln b big" style="margin-top:10px"><span>الإجمالي</span><span id="tot">${fmt(lt(form.lines))}</span></div>`;
 }
 function formHtml(){
-  const t=form.t,v=form.v,inv=t==='s'||t==='p';
-  return`<div class="ov" data-close><div class="sh"><h3>عملية جديدة</h3><div class="chips">${Object.entries(T).map(([k,n])=>`<button class="chip ${t===k?'on':''}" data-ft="${k}">${n}</button>`).join('')}</div>${FIELDS[t].split(' ').map(f=>fieldHtml(f,t,v)).join('')}${inv?linesHtml():''}<div class="neg" style="margin-top:8px">${esc(form.err||'')}</div><div class="row" style="margin-top:12px"><button class="btn" data-save ${busy?'disabled':''}>حفظ</button><button class="btn g" data-cancel>إلغاء</button></div></div></div>`;
+  const t=form.t,v=form.v;
+  return`<div class="ov" data-close><div class="sh"><h3>${T[t]}</h3><div class="chips">${Object.entries(T).map(([k,n])=>`<button class="chip ${t===k?'on':''}" data-ft="${k}">${n}</button>`).join('')}</div>${FIELDS[t].split(' ').map(f=>fieldHtml(f,t,v)).join('')}${t==='s'||t==='p'?linesHtml():''}<div class="neg" style="margin-top:8px">${esc(form.err||'')}</div><div class="row" style="margin-top:12px"><button class="btn" data-save ${busy?'disabled':''}>حفظ</button><button class="btn g" data-cancel>إلغاء</button></div></div></div>`;
 }
-function readForm(){const v={};document.querySelectorAll('.sh [data-f]').forEach(e=>v[e.dataset.f]=e.value);return v}
+function mfHtml(){
+  const L={name:'الاسم',phone:'الهاتف',note:'ملاحظات',price:'سعر البيع الافتراضي',cost:'سعر التكلفة الافتراضي',cur:'العملة',share:'نسبة الشريك من الأرباح ٪'};
+  const v=mf.v;
+  return`<div class="ov" data-close><div class="sh"><h3>${mf.id?'تعديل':'جديد'}: ${MK[mf.kind]}</h3>${MF[mf.kind].split(' ').map(f=>`<label>${L[f]}${f==='cur'?`<select data-m="cur">${C.map(c=>`<option ${(v.cur||'USD')===c?'selected':''}>${c}</option>`).join('')}</select>`:`<input data-m="${f}" ${NUM.includes(f)?'type="number" step="any" inputmode="decimal"':''} ${f==='name'&&mf.id?'readonly':''} value="${esc(v[f]??'')}">`}</label>`).join('')}<div class="neg" style="margin-top:8px">${esc(mf.err||'')}</div><div class="row" style="margin-top:12px"><button class="btn" data-msave ${busy?'disabled':''}>حفظ</button><button class="btn g" data-cancel>إلغاء</button>${mf.id?`<button class="btn d ${armed===mf.id?'arm':''}" data-mdel="${mf.id}">${armed===mf.id?'تأكيد الحذف':'حذف'}</button>`:''}</div>${mf.id?'<div class="mut sm" style="margin-top:6px">الحذف بيشيله من القائمة فقط، وعملياته القديمة بتضل محفوظة.</div>':''}</div></div>`;
+}
+const readF=()=>{const v={};document.querySelectorAll('.sh [data-f]').forEach(e=>v[e.dataset.f]=e.value);return v};
+const readM=()=>{const v={};document.querySelectorAll('.sh [data-m]').forEach(e=>v[e.dataset.m]=e.value);return v};
 function render(){
   const on=!!user;
-  out.hidden=!on;nav.hidden=!on;fab.hidden=!on;
-  if(!configured){app.innerHTML='<div class="card neg">لسا ما ظبطنا Supabase: افتح index.html وعدّل رابط المشروع والمفتاح بأول السكربت.</div>';return}
-  if(!on){app.innerHTML=ready?login():'<div class="empty">جاري التحميل…</div>';return}
+  $('out').hidden=!on;$('mb').hidden=!on;
+  $('side').innerHTML=on?`<h2>طيف</h2>`+MENU.map(([k,n,i])=>`<button class="${view===k||(view==='det'&&ST&&ST.k===k)?'on':''}" data-v="${k}"><span>${i}</span>${n}</button>`).join(''):'';
+  $('ttl').textContent=on?TITLE[view]:'طيف';
+  if(!sb){$('app').innerHTML='<div class="card neg">إعدادات Supabase ناقصة.</div>';return}
+  if(!on){$('app').innerHTML=ready?login():'<div class="empty">جاري التحميل…</div>';return}
   lists();
-  app.innerHTML=(err?`<div class="card neg">${esc(err)}</div>`:'')+({home,ops,acc,stk}[tab])()+(form?formHtml():'');
-  nav.innerHTML=Object.entries(NAV).map(([k,v])=>`<button class="${tab===k?'on':''}" data-tab="${k}">${v}</button>`).join('');
+  const V={home,s:()=>inv('s'),p:()=>inv('p'),e:()=>inv('e'),c:()=>parties('c'),u:()=>parties('u'),prod,m:partners,mv,det};
+  $('app').innerHTML=(err?`<div class="card neg">${esc(err)}</div>`:'')+V[view]()+(form?formHtml():'')+(mf?mfHtml():'');
 }
 async function load(){
   let all=[],from=0;
   for(;;){const{data,error}=await sb.from('entries').select('*').order('d',{ascending:false}).order('created_at',{ascending:false}).range(from,from+999);
-    if(error){err='تعذّر تحميل البيانات: '+error.message;break}
+    if(error){err='تعذّر التحميل: '+error.message;break}
     all=all.concat(data);if(data.length<1000)break;from+=1000}
-  tx=all;render();
+  tx=all;
+  const r=await sb.from('masters').select('*').order('name').range(0,2999);
+  if(r.error)err='تعذّر تحميل القوائم. هل شغّلت schema-v2.sql؟ ('+r.error.message+')';else M=r.data;
+  render();
+}
+async function ensure(o){
+  const pk={s:'c',r:'c',p:'u',y:'u',k:'m',d:'m'}[o.t],need=[];
+  if(pk&&o.party&&!M.some(m=>m.kind===pk&&m.name===o.party))need.push({kind:pk,name:o.party});
+  (o.lines||[]).forEach(l=>{if(!M.some(m=>m.kind==='p'&&m.name===l.n)&&!need.some(x=>x.kind==='p'&&x.name===l.n))need.push({kind:'p',name:l.n,[o.t==='s'?'price':'cost']:l.p,cur:o.cur})});
+  if(need.length)await sb.from('masters').insert(need);
 }
 async function save(){
-  const v=readForm(),t=form.t,o={t};
-  for(const f of FIELDS[t].split(' ')){const x=v[f];o[f]=['amt','paid','qty','cogs','a2'].includes(f)?(x===''||x==null?null:parseFloat(x)):String(x??'').trim()}
+  const v=readF(),t=form.t,o={t};
+  for(const f of FIELDS[t].split(' ')){const x=v[f];o[f]=NUM.includes(f)?(x===''||x==null?null:parseFloat(x)):String(x??'').trim()}
   if(t==='s'||t==='p'){
-    const ls=form.lines.filter(l=>l.n&&+l.q>0&&+l.p>=0&&l.p!=='').map(l=>({n:l.n.trim(),q:+l.q,p:+l.p,...(l.note?{note:l.note.trim()}:{})}));
+    const ls=form.lines.filter(l=>l.n&&+l.q>0&&l.p!==''&&+l.p>=0).map(l=>({n:l.n.trim(),q:+l.q,p:+l.p,...(l.note?{note:l.note.trim()}:{})}));
     if(!ls.length)return form.err='أضف بند واحد على الأقل (منتج وكمية وسعر)';
     o.lines=ls;o.amt=lt(ls);if(o.paid==null)o.paid=o.amt;
     if(t==='s'){if(o.cogs==null)o.cogs=0;if(!o.ccur)o.ccur=o.cur}
@@ -182,53 +232,83 @@ async function save(){
     if(!o.amt||(t!=='k'&&o.amt<=0))return form.err='اكتب المبلغ';
     if(t==='x'&&(!o.a2||o.cur===o.c2))return form.err='اكتب المبلغ المستلم وعملة مختلفة';
     if(t==='r')o.party=o.party||'زبون نقدي';if(t==='y')o.party=o.party||'مورد عام';
+    if(t==='d'&&!o.party)return form.err='اختر الشريك';
   }
   if(t==='a')delete o.cur;
   Object.keys(o).forEach(k=>(o[k]==null||o[k]==='')&&delete o[k]);
-  busy=true;const{error}=await sb.from('entries').insert(o);busy=false;
+  busy=true;render();
+  const{error}=await sb.from('entries').insert(o);
+  if(!error)await ensure(o);
+  busy=false;
   if(error)return form.err='تعذّر الحفظ: '+error.message;
   form=null;await load();
 }
+async function msave(){
+  const v=readM(),o={kind:mf.kind};
+  for(const f of MF[mf.kind].split(' ')){const x=v[f];o[f]=NUM.includes(f)?(x===''||x==null?null:parseFloat(x)):String(x??'').trim()}
+  if(!o.name)return mf.err='اكتب الاسم';
+  busy=true;render();
+  const r=mf.id?await sb.from('masters').update(o).eq('id',mf.id):await sb.from('masters').insert(o);
+  busy=false;
+  if(r.error)return mf.err=r.error.code==='23505'?'هالاسم موجود من قبل':'تعذّر الحفظ: '+r.error.message;
+  mf=null;await load();
+}
+const defLine=()=>({n:'',q:'',p:'',note:''});
 document.addEventListener('click',async e=>{
-  const d=e.target.closest('[data-tab],[data-of],[data-st],[data-back],[data-del],[data-ft],[data-save],[data-cancel],[data-close],[data-login],[data-signup],[data-al],[data-rl],#fab,#out');
+  const d=e.target.closest('[data-v],[data-new],[data-mnew],[data-medit],[data-mdel],[data-msave],[data-of],[data-st],[data-back],[data-del],[data-ft],[data-save],[data-cancel],[data-close],[data-login],[data-signup],[data-al],[data-rl],#out,#mb,#bk');
   if(!d)return;
   if(d.dataset.close!==undefined&&e.target!==d)return;
-  err='';
+  err='';const ds=d.dataset;
   if(d.id==='out'){await sb.auth.signOut();return}
-  if(d.dataset.login!==undefined||d.dataset.signup!==undefined){
-    const c={email:em.value.trim(),password:pw.value};msg='';
-    const r=d.dataset.login!==undefined?await sb.auth.signInWithPassword(c):await sb.auth.signUp(c);
+  if(d.id==='mb'||d.id==='bk'){$('side').classList.toggle('open');$('bk').classList.toggle('open');return}
+  $('side').classList.remove('open');$('bk').classList.remove('open');
+  if(ds.login!==undefined||ds.signup!==undefined){
+    const c={email:$('em').value.trim(),password:$('pw').value};msg='';
+    const r=ds.login!==undefined?await sb.auth.signInWithPassword(c):await sb.auth.signUp(c);
     if(r.error)err=r.error.message;else if(!r.data.session)msg='تم إنشاء الحساب. إذا طلب تأكيد البريد، افتح الرسالة وبعدها ادخل.';
   }
-  else if(d.id==='fab')form={t:'s',v:{},lines:[{n:'',q:'',p:'',note:''}],err:''};
-  else if(d.dataset.tab){tab=d.dataset.tab;ST=null}
-  else if(d.dataset.of!==undefined)OF=d.dataset.of;
-  else if(d.dataset.st)ST={k:d.dataset.st,n:d.dataset.n};
-  else if(d.dataset.back!==undefined)ST=null;
-  else if(d.dataset.ft){form.v=readForm();form.t=d.dataset.ft}
-  else if(d.dataset.al!==undefined){form.v=readForm();form.lines.push({n:'',q:'',p:'',note:''})}
-  else if(d.dataset.rl!==undefined){form.v=readForm();form.lines.splice(+d.dataset.rl,1);if(!form.lines.length)form.lines.push({n:'',q:'',p:'',note:''})}
-  else if(d.dataset.cancel!==undefined||d.dataset.close!==undefined)form=null;
-  else if(d.dataset.save!==undefined){form.v=readForm();await save()}
-  else if(d.dataset.del){
-    if(armed===d.dataset.del){const id=armed;armed=null;const{error}=await sb.from('entries').delete().eq('id',id);if(error)err='تعذّر الحذف: '+error.message;else await load()}
-    else{armed=d.dataset.del;setTimeout(()=>{if(armed===d.dataset.del){armed=null;render()}},4000)}
+  else if(ds.v){view=ds.v;ST=null;OF=''}
+  else if(ds.new){form={t:ds.new,v:ds.party?{party:ds.party}:{},lines:[defLine()],err:''}}
+  else if(ds.mnew){mf={kind:ds.mnew,v:{},err:''}}
+  else if(ds.medit){const m=M.find(x=>x.id===ds.medit);if(m)mf={kind:m.kind,id:m.id,v:m,err:''}}
+  else if(ds.msave!==undefined)await msave();
+  else if(ds.mdel){
+    if(armed===ds.mdel){const id=armed;armed=null;const r=await sb.from('masters').delete().eq('id',id);if(r.error)mf.err=r.error.message;else{mf=null;if(view==='det')view=ST.k,ST=null;await load()}}
+    else{armed=ds.mdel;setTimeout(()=>{if(armed===ds.mdel){armed=null;render()}},4000)}
+  }
+  else if(ds.of!==undefined)OF=ds.of;
+  else if(ds.st){ST={k:ds.st,n:ds.n};view='det'}
+  else if(ds.back!==undefined){view=ST.k;ST=null}
+  else if(ds.ft){form.v=readF();form.t=ds.ft}
+  else if(ds.al!==undefined){form.v=readF();form.lines.push(defLine())}
+  else if(ds.rl!==undefined){form.v=readF();form.lines.splice(+ds.rl,1);if(!form.lines.length)form.lines.push(defLine())}
+  else if(ds.cancel!==undefined||ds.close!==undefined){form=null;mf=null}
+  else if(ds.save!==undefined){form.v=readF();await save()}
+  else if(ds.del){
+    if(armed===ds.del){const id=armed;armed=null;const r=await sb.from('entries').delete().eq('id',id);if(r.error)err='تعذّر الحذف: '+r.error.message;else await load()}
+    else{armed=ds.del;setTimeout(()=>{if(armed===ds.del){armed=null;render()}},4000)}
   }
   render();
 });
 document.addEventListener('input',e=>{
   const el=e.target;if(el.dataset.li===undefined||!form)return;
   form.lines[+el.dataset.li][el.dataset.lf]=el.value;
-  const t=document.getElementById('tot');if(t)t.textContent=fmt(lt(form.lines));
+  const t=$('tot');if(t)t.textContent=fmt(lt(form.lines));
 });
 document.addEventListener('change',e=>{
-  if(e.target.id==='F'){F=e.target.value;render()}
-  if(e.target.id==='TT'){TT=e.target.value;render()}
+  const el=e.target;
+  if(el.id==='F'){F=el.value;render()}
+  if(el.id==='TT'){TT=el.value;render()}
+  if(el.dataset.li!==undefined&&el.dataset.lf==='n'&&form){
+    const i=+el.dataset.li,l=form.lines[i],m=mk('p').find(x=>x.name===el.value.trim());
+    const pv=m&&(form.t==='s'?m.price:m.cost);
+    if(m&&pv!=null&&l.p===''){l.p=String(pv);const pi=document.querySelector(`[data-li="${i}"][data-lf="p"]`);if(pi)pi.value=pv;const t=$('tot');if(t)t.textContent=fmt(lt(form.lines))}
+  }
 });
-document.addEventListener('visibilitychange',()=>{if(!document.hidden&&user&&!form)load()});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&user&&!form&&!mf)load()});
 render();
 if(sb){
-  sb.auth.onAuthStateChange((_e,s)=>{user=s?.user||null;ready=true;if(user)load();else{tx=[];render()}});
+  sb.auth.onAuthStateChange((_e,s)=>{user=s?.user||null;ready=true;if(user)load();else{tx=[];M=[];render()}});
   sb.auth.getSession().then(({data})=>{if(!ready){user=data.session?.user||null;ready=true;if(user)load();else render()}});
 }
 </script>
