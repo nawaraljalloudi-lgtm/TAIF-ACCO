@@ -75,7 +75,7 @@ async function load(){
       pg('ta_invoices','*,party:ta_parties(name),lines:ta_invoice_lines(qty,price,item:ta_items(name))','created_at'),
       pg('ta_payments','*,party:ta_parties(name),invoice:ta_invoices(no)','created_at'),pg('ta_assets','*','d'),pg('ta_dep','*'),
       pg('ta_layers','*,item:ta_items(name)','d',1),pg('ta_moves','*,item:ta_items(name)','created_at'),
-      pg('ta_audit','*','id'),pg('ta_lines','*,account:ta_accounts(code,name,type,sys),journal:ta_journals(no,d,kind,memo,rate,ref_type,ref_id,voided_by,reversed_of)','created_at'),
+      pg('ta_audit','*','id'),pg('ta_lines','*,account:ta_accounts(code,name,type,sys),journal:ta_journals(no,d,kind,memo,rate,ref_type,ref_id,voided_by,reversed_of)','id'),
       sb.rpc('ta_stock').then(r=>{if(r.error)throw r.error;return r.data})]);
     D={set:set[0],acc,par,items,pts,inv,pay,ast,dep,lay,mov,aud,LN,stock};
   }catch(e){toast('تعذّر التحميل: '+(e.message||e));D=null}
